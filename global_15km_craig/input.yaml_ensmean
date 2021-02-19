@@ -1,0 +1,866 @@
+---
+logging:
+  categories: Info, Test, Warning, Error, Log, Trace, Stats
+nml_file: namelist.atmosphere_2019042906
+window begin: '2019-04-29T03:00:00Z' #'2020-07-23T09:00:00Z'
+window length: PT6H #PT6H
+forecast length: PT6H #PT6H
+geometry:
+  gridfname: "./grid.nc"
+  deallocate non-da fields: true
+  use bump interpolation: false
+forecasts:
+  state variables: [temperature, spechum, uReconstructZonal, uReconstructMeridional, surface_pressure,
+                    index_qc, index_qi, index_qr, index_qs, index_qg,
+                    theta, rho, u, index_qv, pressure, landmask, xice, snowc, skintemp, ivgtyp, isltyp,
+                    snowh, vegfra, u10, v10, lai, smois, tslb]
+  filename: "./mpasout.2019-04-29_06.00.00.nc"
+  date: '2019-04-29T06:00:00Z'
+observations:
+- obs space:
+    name: sondes #Radiosonde
+    obsdatain:
+      obsfile: ./sondes_obs_2019042906.nc4 # e.g., sondes_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_sondes_ensmean.nc4
+    simulated variables: [air_temperature, virtual_temperature, eastward_wind, northward_wind, specific_humidity]
+  obs operator:
+    name: VertInterp #VertInterp or SfcPCorrected
+    #da_psfc_scheme: UKMO   # or WRFDA
+  #linear obs operator:
+    #name: Identity
+  obs error:
+    covariance model: diagonal
+  obs filters:
+  - filter: PreQC
+    maxvalue: 3 #3
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+  - filter: Difference Check # want for soundings and surface
+    reference: station_elevation@MetaData
+    value: surface_altitude@GeoVaLs
+    threshold: 100 # meters
+# - filter: Domain Check
+#   filter variables:
+#   - name: specific_humidity
+#   where:
+#   - variable:
+#       name: air_pressure@MetaData
+#     minvalue: 30000
+  #- filter: Gaussian_Thinning
+    #horizontal_mesh: -1 # km, disabled if set to -1
+
+- obs space:
+    name: aircraft #Radiosonde
+    obsdatain:
+      obsfile: ./aircraft_obs_2019042906.nc4 # e.g., sondes_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_aircraft_ensmean.nc4
+    simulated variables: [air_temperature, eastward_wind, northward_wind, specific_humidity]
+  obs operator:
+    name: VertInterp #VertInterp or SfcPCorrected
+    #da_psfc_scheme: UKMO   # or WRFDA
+  #linear obs operator:
+    #name: Identity
+  obs error:
+    covariance model: diagonal
+  obs filters:
+  - filter: PreQC
+    maxvalue: 3 #3
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+  #- filter: Difference Check # want for soundings and surface
+    #reference: station_elevation@MetaData
+    #value: surface_altitude@GeoVaLs
+    #threshold: 100 # meters
+# - filter: Domain Check
+#   filter variables:
+#   - name: specific_humidity
+#   where:
+#   - variable:
+#       name: air_pressure@MetaData
+#     minvalue: 30000
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30 # km, disabled if set to -1
+
+- obs space:
+    name: satwind #Radiosonde
+    obsdatain:
+      obsfile: ./satwind_obs_2019042906.nc4 # e.g., sondes_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_satwind_ensmean.nc4
+    simulated variables: [eastward_wind, northward_wind]
+  obs operator:
+    name: VertInterp #VertInterp or SfcPCorrected
+    #da_psfc_scheme: UKMO   # or WRFDA
+  #linear obs operator:
+    #name: Identity
+  obs error:
+    covariance model: diagonal
+  obs filters:
+  - filter: PreQC
+    maxvalue: 3 #3
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+  #- filter: Difference Check # want for soundings and surface
+    #reference: station_elevation@MetaData
+    #value: surface_altitude@GeoVaLs
+    #threshold: 100 # meters
+# - filter: Domain Check
+#   filter variables:
+#   - name: specific_humidity
+#   where:
+#   - variable:
+#       name: air_pressure@MetaData
+#     minvalue: 30000
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30 # km, disabled if set to -1
+
+- obs space:
+    name: sfc #Radiosonde
+    obsdatain:
+      obsfile: ./sfc_obs_2019042906.nc4 # e.g., sondes_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_sfc_ensmean.nc4
+    simulated variables: [surface_pressure]
+  obs operator:
+    name: SfcPCorrected #VertInterp or SfcPCorrected
+    da_psfc_scheme: UKMO   # or WRFDA
+  linear obs operator:
+    name: Identity
+  obs error:
+    covariance model: diagonal
+  obs filters:
+  - filter: PreQC
+    maxvalue: 3 #3
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+  - filter: Difference Check # want for soundings and surface
+    reference: station_elevation@MetaData
+    value: surface_altitude@GeoVaLs
+    threshold: 100 # meters
+# - filter: Domain Check
+#   filter variables:
+#   - name: specific_humidity
+#   where:
+#   - variable:
+#       name: air_pressure@MetaData
+#     minvalue: 30000
+  #- filter: Gaussian_Thinning
+    #horizontal_mesh: -1 # km, disabled if set to -1
+
+- obs space:
+    name: GnssroRef
+    obsdatain:
+      obsfile: ./gnssro_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_gnssro_ensmean.nc4
+    simulated variables: [refractivity]
+  obs operator:
+    name: GnssroRef
+    obs options:
+      use_compress: 0
+  obs error:
+    covariance model: diagonal
+  obs filters:
+  - filter: Domain Check
+    where:
+    - variable:
+        name: altitude@MetaData
+      minvalue: 500 #1000 #0
+      maxvalue: 30000
+    - variable:
+        name: earth_radius_of_curvature@MetaData
+      minvalue: 6250000
+      maxvalue: 6450000
+    - variable:
+        name: geoid_height_above_reference_ellipsoid@MetaData
+      minvalue: -200
+      maxvalue: 200
+  - filter: Background Check
+    threshold: 5 # 3.0
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 15.0 # km
+  - filter: ROobserror
+    variable: refractivity
+    errmodel: NBAM
+
+- obs space: &amsuaobsspace
+    name: amsua_n19 # AMSUA-NOAA19
+    obsdatain:
+      obsfile: ./amsua_n19_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_amsua_n19_ensmean.nc4
+    simulated variables: [brightness_temperature]
+    channels: &channels_amsua_n19 5,6
+  obs error:
+    covariance model: diagonal
+  obs operator: &crtmcloud
+    name: CRTM
+    Absorbers: [H2O,O3,CO2]
+    #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    linear obs operator:
+      Absorbers: [H2O,O3,CO2]
+      #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    obs options: &crtmopts
+      Sensor_ID: amsua_n19
+      EndianType: little_endian
+      CoefficientPath: /glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/ #/glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/
+  obs bias:
+    abias_in:  ./satbias_in
+    abias_out: ./satbias_out
+    sensor: amsua_n19
+    jobs: *channels_amsua_n19
+    predictors:
+    - predictor:
+        name: constant
+    - predictor:
+        name: cosine_of_latitude_times_orbit_node
+       #options:
+       #  preconditioner: 0.01
+    - predictor:
+        name: sine_of_latitude
+#     - predictor:
+#         name: cloud_liquid_water
+#         options:
+#           clwret_ch238: 1
+#           clwret_ch314: 2
+#           clwret_types: [HofX]
+    - predictor:
+        name: lapse_rate
+        options:
+          order: 2
+          tlapse: &amsua_n19_tlap ./amsua_n19_tlapmean.txt
+    - predictor:
+        name: lapse_rate
+        options:
+          tlapse: *amsua_n19_tlap
+    - predictor:
+        name: emissivity
+    - predictor:
+        name: scan_angle
+        options:
+          order: 4
+    - predictor:
+        name: scan_angle
+        options:
+          order: 3
+    - predictor:
+        name: scan_angle
+        options:
+          order: 2
+    - predictor:
+        name: scan_angle
+  obs filters:
+  - filter: PreQC
+    maxvalue: 0 #0
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+    absolute threshold: 15.0
+  - filter: GOMsaver
+    filename: Data/geovals_omb_amsua_n19_ensmean.nc4
+  - filter: YDIAGsaver
+    filename: Data/ydiag_omb_amsua_n19_ensmean.nc4
+    filter variables:  # &amsuaydiag
+    - name: brightness_temperature_assuming_clear_sky
+      channels: *channels_amsua_n19 #1-15...if this range is larger than the range requested, it will fail
+    - name: brightness_temperature_jacobian_air_temperature
+      channels: *channels_amsua_n19 #1-15
+    - name: brightness_temperature_jacobian_humidity_mixing_ratio
+      channels: *channels_amsua_n19 #1-15
+    - name: brightness_temperature_jacobian_surface_emissivity
+      channels: *channels_amsua_n19 #1-15
+    - name: brightness_temperature_jacobian_surface_temperature
+      channels: *channels_amsua_n19 #1-15
+    - name: weightingfunction_of_atmosphere_layer
+      channels: *channels_amsua_n19 #1-15
+    - name: pressure_level_at_peak_of_weightingfunction
+      channels: *channels_amsua_n19 #1-15
+  - filter: Domain Check
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n19 #1-15
+    where:
+#   - variable:
+#       name: water_area_fraction@GeoVaLs
+#     minvalue: 1.0
+    - variable:
+        name: ice_area_fraction@GeoVaLs
+      maxvalue: 0.01
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30.0 # km
+  # Get rid of mixed surface types
+  - filter: BlackList
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n19 #1-15
+    where:
+    - variable:
+        name: land_area_fraction@GeoVaLs
+      minvalue: 0.01
+    - variable:
+        name: water_area_fraction@GeoVaLs
+      minvalue: 0.01
+# - filter: BlackList
+#   filter variables:
+#   - name: brightness_temperature
+#     channels: *channels_amsua_n19 #1-15
+#   where:
+#   - variable:
+#       name:  land_area_fraction@GeoVaLs
+#     maxvalue: 0.05
+#   # check is specific to AMSU-A requires ch1, ch2 and ch15
+#   # flags land along with sea-ice
+#   - variable:
+#       name: Scattering@ObsFunction
+#     minvalue: 10.0
+# - filter: Difference Check
+#   reference: brightness_temperature_15@ObsValue
+#   value: brightness_temperature_1@ObsValue
+#   maxvalue: 3
+
+- obs space: &amsuaobsspace
+    name: amsua_n18 # AMSUA-NOAA19
+    obsdatain:
+      obsfile: ./amsua_n18_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_amsua_n18_ensmean.nc4
+    simulated variables: [brightness_temperature]
+    channels: &channels_amsua_n18 6,7
+  obs error:
+    covariance model: diagonal
+  obs operator: &crtmcloud
+    name: CRTM
+    Absorbers: [H2O,O3,CO2]
+    #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    linear obs operator:
+      Absorbers: [H2O,O3,CO2]
+      #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    obs options: &crtmopts
+      Sensor_ID: amsua_n18
+      EndianType: little_endian
+      CoefficientPath: /glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/ #/glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/
+  obs bias:
+    abias_in:  ./satbias_in
+    abias_out: ./satbias_out
+    sensor: amsua_n18
+    jobs: *channels_amsua_n18
+    predictors:
+    - predictor:
+        name: constant
+    - predictor:
+        name: cosine_of_latitude_times_orbit_node
+       #options:
+       #  preconditioner: 0.01
+    - predictor:
+        name: sine_of_latitude
+#     - predictor:
+#         name: cloud_liquid_water
+#         options:
+#           clwret_ch238: 1
+#           clwret_ch314: 2
+#           clwret_types: [HofX]
+    - predictor:
+        name: lapse_rate
+        options:
+          order: 2
+          tlapse: &amsua_n18_tlap ./amsua_n18_tlapmean.txt
+    - predictor:
+        name: lapse_rate
+        options:
+          tlapse: *amsua_n18_tlap
+    - predictor:
+        name: emissivity
+    - predictor:
+        name: scan_angle
+        options:
+          order: 4
+    - predictor:
+        name: scan_angle
+        options:
+          order: 3
+    - predictor:
+        name: scan_angle
+        options:
+          order: 2
+    - predictor:
+        name: scan_angle
+  obs filters:
+  - filter: PreQC
+    maxvalue: 0 #0
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+    absolute threshold: 15.0
+  - filter: GOMsaver
+    filename: Data/geovals_omb_amsua_n18_ensmean.nc4
+  - filter: YDIAGsaver
+    filename: Data/ydiag_omb_amsua_n18_ensmean.nc4
+    filter variables:  # &amsuaydiag
+    - name: brightness_temperature_assuming_clear_sky
+      channels: *channels_amsua_n18 #1-15...if this range is larger than the range requested, it will fail
+    - name: brightness_temperature_jacobian_air_temperature
+      channels: *channels_amsua_n18 #1-15
+    - name: brightness_temperature_jacobian_humidity_mixing_ratio
+      channels: *channels_amsua_n18 #1-15
+    - name: brightness_temperature_jacobian_surface_emissivity
+      channels: *channels_amsua_n18 #1-15
+    - name: brightness_temperature_jacobian_surface_temperature
+      channels: *channels_amsua_n18 #1-15
+    - name: weightingfunction_of_atmosphere_layer
+      channels: *channels_amsua_n18 #1-15
+    - name: pressure_level_at_peak_of_weightingfunction
+      channels: *channels_amsua_n18 #1-15
+  - filter: Domain Check
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n18 #1-15
+    where:
+#   - variable:
+#       name: water_area_fraction@GeoVaLs
+#     minvalue: 1.0
+    - variable:
+        name: ice_area_fraction@GeoVaLs
+      maxvalue: 0.01
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30.0 # km
+  # Get rid of mixed surface types
+  - filter: BlackList
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n18 #1-15
+    where:
+    - variable:
+        name: land_area_fraction@GeoVaLs
+      minvalue: 0.01
+    - variable:
+        name: water_area_fraction@GeoVaLs
+      minvalue: 0.01
+# - filter: BlackList
+#   filter variables:
+#   - name: brightness_temperature
+#     channels: *channels_amsua_n18 #1-15
+#   where:
+#   - variable:
+#       name:  land_area_fraction@GeoVaLs
+#     maxvalue: 0.05
+#   # check is specific to AMSU-A requires ch1, ch2 and ch15
+#   # flags land along with sea-ice
+#   - variable:
+#       name: Scattering@ObsFunction
+#     minvalue: 10.0
+# - filter: Difference Check
+#   reference: brightness_temperature_15@ObsValue
+#   value: brightness_temperature_1@ObsValue
+#   maxvalue: 3
+
+- obs space: &amsuaobsspace
+    name: amsua_metop-a # AMSUA-NOAA19
+    obsdatain:
+      obsfile: ./amsua_metop-a_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_amsua_metop-a_ensmean.nc4
+    simulated variables: [brightness_temperature]
+    channels: &channels_amsua_metop-a 5,6
+  obs error:
+    covariance model: diagonal
+  obs operator: &crtmcloud
+    name: CRTM
+    Absorbers: [H2O,O3,CO2]
+    #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    linear obs operator:
+      Absorbers: [H2O,O3,CO2]
+      #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    obs options: &crtmopts
+      Sensor_ID: amsua_metop-a
+      EndianType: little_endian
+      CoefficientPath: /glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/ #/glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/
+  obs bias:
+    abias_in:  ./satbias_in
+    abias_out: ./satbias_out
+    sensor: amsua_metop-a
+    jobs: *channels_amsua_metop-a
+    predictors:
+    - predictor:
+        name: constant
+    - predictor:
+        name: cosine_of_latitude_times_orbit_node
+       #options:
+       #  preconditioner: 0.01
+    - predictor:
+        name: sine_of_latitude
+#     - predictor:
+#         name: cloud_liquid_water
+#         options:
+#           clwret_ch238: 1
+#           clwret_ch314: 2
+#           clwret_types: [HofX]
+    - predictor:
+        name: lapse_rate
+        options:
+          order: 2
+          tlapse: &amsua_metop-a_tlap ./amsua_metop-a_tlapmean.txt
+    - predictor:
+        name: lapse_rate
+        options:
+          tlapse: *amsua_metop-a_tlap
+    - predictor:
+        name: emissivity
+    - predictor:
+        name: scan_angle
+        options:
+          order: 4
+    - predictor:
+        name: scan_angle
+        options:
+          order: 3
+    - predictor:
+        name: scan_angle
+        options:
+          order: 2
+    - predictor:
+        name: scan_angle
+  obs filters:
+  - filter: PreQC
+    maxvalue: 0 #0
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+    absolute threshold: 15.0
+  - filter: GOMsaver
+    filename: Data/geovals_omb_amsua_metop-a_ensmean.nc4
+  - filter: YDIAGsaver
+    filename: Data/ydiag_omb_amsua_metop-a_ensmean.nc4
+    filter variables:  # &amsuaydiag
+    - name: brightness_temperature_assuming_clear_sky
+      channels: *channels_amsua_metop-a #1-15...if this range is larger than the range requested, it will fail
+    - name: brightness_temperature_jacobian_air_temperature
+      channels: *channels_amsua_metop-a #1-15
+    - name: brightness_temperature_jacobian_humidity_mixing_ratio
+      channels: *channels_amsua_metop-a #1-15
+    - name: brightness_temperature_jacobian_surface_emissivity
+      channels: *channels_amsua_metop-a #1-15
+    - name: brightness_temperature_jacobian_surface_temperature
+      channels: *channels_amsua_metop-a #1-15
+    - name: weightingfunction_of_atmosphere_layer
+      channels: *channels_amsua_metop-a #1-15
+    - name: pressure_level_at_peak_of_weightingfunction
+      channels: *channels_amsua_metop-a #1-15
+  - filter: Domain Check
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_metop-a #1-15
+    where:
+#   - variable:
+#       name: water_area_fraction@GeoVaLs
+#     minvalue: 1.0
+    - variable:
+        name: ice_area_fraction@GeoVaLs
+      maxvalue: 0.01
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30.0 # km
+  # Get rid of mixed surface types
+  - filter: BlackList
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_metop-a #1-15
+    where:
+    - variable:
+        name: land_area_fraction@GeoVaLs
+      minvalue: 0.01
+    - variable:
+        name: water_area_fraction@GeoVaLs
+      minvalue: 0.01
+# - filter: BlackList
+#   filter variables:
+#   - name: brightness_temperature
+#     channels: *channels_amsua_metop-a #1-15
+#   where:
+#   - variable:
+#       name:  land_area_fraction@GeoVaLs
+#     maxvalue: 0.05
+#   # check is specific to AMSU-A requires ch1, ch2 and ch15
+#   # flags land along with sea-ice
+#   - variable:
+#       name: Scattering@ObsFunction
+#     minvalue: 10.0
+# - filter: Difference Check
+#   reference: brightness_temperature_15@ObsValue
+#   value: brightness_temperature_1@ObsValue
+#   maxvalue: 3
+
+- obs space: &amsuaobsspace
+    name: amsua_n15 # AMSUA-NOAA19
+    obsdatain:
+      obsfile: ./amsua_n15_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_amsua_n15_ensmean.nc4
+    simulated variables: [brightness_temperature]
+    channels: &channels_amsua_n15 5,7,8
+  obs error:
+    covariance model: diagonal
+  obs operator: &crtmcloud
+    name: CRTM
+    Absorbers: [H2O,O3,CO2]
+    #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    linear obs operator:
+      Absorbers: [H2O,O3,CO2]
+      #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    obs options: &crtmopts
+      Sensor_ID: amsua_n15
+      EndianType: little_endian
+      CoefficientPath: /glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/ #/glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/
+  obs bias:
+    abias_in:  ./satbias_in
+    abias_out: ./satbias_out
+    sensor: amsua_n15
+    jobs: *channels_amsua_n15
+    predictors:
+    - predictor:
+        name: constant
+    - predictor:
+        name: cosine_of_latitude_times_orbit_node
+       #options:
+       #  preconditioner: 0.01
+    - predictor:
+        name: sine_of_latitude
+#     - predictor:
+#         name: cloud_liquid_water
+#         options:
+#           clwret_ch238: 1
+#           clwret_ch314: 2
+#           clwret_types: [HofX]
+    - predictor:
+        name: lapse_rate
+        options:
+          order: 2
+          tlapse: &amsua_n15_tlap ./amsua_n15_tlapmean.txt
+    - predictor:
+        name: lapse_rate
+        options:
+          tlapse: *amsua_n15_tlap
+    - predictor:
+        name: emissivity
+    - predictor:
+        name: scan_angle
+        options:
+          order: 4
+    - predictor:
+        name: scan_angle
+        options:
+          order: 3
+    - predictor:
+        name: scan_angle
+        options:
+          order: 2
+    - predictor:
+        name: scan_angle
+  obs filters:
+  - filter: PreQC
+    maxvalue: 0 #0
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+    absolute threshold: 15.0
+  - filter: GOMsaver
+    filename: Data/geovals_omb_amsua_n15_ensmean.nc4
+  - filter: YDIAGsaver
+    filename: Data/ydiag_omb_amsua_n15_ensmean.nc4
+    filter variables:  # &amsuaydiag
+    - name: brightness_temperature_assuming_clear_sky
+      channels: *channels_amsua_n15 #1-15...if this range is larger than the range requested, it will fail
+    - name: brightness_temperature_jacobian_air_temperature
+      channels: *channels_amsua_n15 #1-15
+    - name: brightness_temperature_jacobian_humidity_mixing_ratio
+      channels: *channels_amsua_n15 #1-15
+    - name: brightness_temperature_jacobian_surface_emissivity
+      channels: *channels_amsua_n15 #1-15
+    - name: brightness_temperature_jacobian_surface_temperature
+      channels: *channels_amsua_n15 #1-15
+    - name: weightingfunction_of_atmosphere_layer
+      channels: *channels_amsua_n15 #1-15
+    - name: pressure_level_at_peak_of_weightingfunction
+      channels: *channels_amsua_n15 #1-15
+  - filter: Domain Check
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n15 #1-15
+    where:
+#   - variable:
+#       name: water_area_fraction@GeoVaLs
+#     minvalue: 1.0
+    - variable:
+        name: ice_area_fraction@GeoVaLs
+      maxvalue: 0.01
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30.0 # km
+  # Get rid of mixed surface types
+  - filter: BlackList
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_n15 #1-15
+    where:
+    - variable:
+        name: land_area_fraction@GeoVaLs
+      minvalue: 0.01
+    - variable:
+        name: water_area_fraction@GeoVaLs
+      minvalue: 0.01
+# - filter: BlackList
+#   filter variables:
+#   - name: brightness_temperature
+#     channels: *channels_amsua_n15 #1-15
+#   where:
+#   - variable:
+#       name:  land_area_fraction@GeoVaLs
+#     maxvalue: 0.05
+#   # check is specific to AMSU-A requires ch1, ch2 and ch15
+#   # flags land along with sea-ice
+#   - variable:
+#       name: Scattering@ObsFunction
+#     minvalue: 10.0
+# - filter: Difference Check
+#   reference: brightness_temperature_15@ObsValue
+#   value: brightness_temperature_1@ObsValue
+#   maxvalue: 3
+
+- obs space: &amsuaobsspace
+    name: amsua_aqua # AMSUA-NOAA19
+    obsdatain:
+      obsfile: ./amsua_aqua_obs_2019042906.nc4
+    obsdataout:
+      obsfile: Data/obsout_omb_amsua_aqua_ensmean.nc4
+    simulated variables: [brightness_temperature]
+    channels: &channels_amsua_aqua 8
+  obs error:
+    covariance model: diagonal
+  obs operator: &crtmcloud
+    name: CRTM
+    Absorbers: [H2O,O3,CO2]
+    #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    linear obs operator:
+      Absorbers: [H2O,O3,CO2]
+      #Clouds: [Water, Ice, Rain, Snow, Graupel]
+    obs options: &crtmopts
+      Sensor_ID: amsua_aqua
+      EndianType: little_endian
+      CoefficientPath: /glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/ #/glade/p/mmm/parc/liuz/pandac_common/crtm_coeffs/
+  obs bias:
+    abias_in:  ./satbias_in
+    abias_out: ./satbias_out
+    sensor: amsua_aqua
+    jobs: *channels_amsua_aqua
+    predictors:
+    - predictor:
+        name: constant
+    - predictor:
+        name: cosine_of_latitude_times_orbit_node
+       #options:
+       #  preconditioner: 0.01
+    - predictor:
+        name: sine_of_latitude
+#     - predictor:
+#         name: cloud_liquid_water
+#         options:
+#           clwret_ch238: 1
+#           clwret_ch314: 2
+#           clwret_types: [HofX]
+    - predictor:
+        name: lapse_rate
+        options:
+          order: 2
+          tlapse: &amsua_aqua_tlap ./amsua_aqua_tlapmean.txt
+    - predictor:
+        name: lapse_rate
+        options:
+          tlapse: *amsua_aqua_tlap
+    - predictor:
+        name: emissivity
+    - predictor:
+        name: scan_angle
+        options:
+          order: 4
+    - predictor:
+        name: scan_angle
+        options:
+          order: 3
+    - predictor:
+        name: scan_angle
+        options:
+          order: 2
+    - predictor:
+        name: scan_angle
+  obs filters:
+  - filter: PreQC
+    maxvalue: 0 #0
+    apply at iterations: 0
+  - filter: Background Check
+    threshold: 5
+    absolute threshold: 15.0
+  - filter: GOMsaver
+    filename: Data/geovals_omb_amsua_aqua_ensmean.nc4
+  - filter: YDIAGsaver
+    filename: Data/ydiag_omb_amsua_aqua_ensmean.nc4
+    filter variables:  # &amsuaydiag
+    - name: brightness_temperature_assuming_clear_sky
+      channels: *channels_amsua_aqua #1-15...if this range is larger than the range requested, it will fail
+    - name: brightness_temperature_jacobian_air_temperature
+      channels: *channels_amsua_aqua #1-15
+    - name: brightness_temperature_jacobian_humidity_mixing_ratio
+      channels: *channels_amsua_aqua #1-15
+    - name: brightness_temperature_jacobian_surface_emissivity
+      channels: *channels_amsua_aqua #1-15
+    - name: brightness_temperature_jacobian_surface_temperature
+      channels: *channels_amsua_aqua #1-15
+    - name: weightingfunction_of_atmosphere_layer
+      channels: *channels_amsua_aqua #1-15
+    - name: pressure_level_at_peak_of_weightingfunction
+      channels: *channels_amsua_aqua #1-15
+  - filter: Domain Check
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_aqua #1-15
+    where:
+#   - variable:
+#       name: water_area_fraction@GeoVaLs
+#     minvalue: 1.0
+    - variable:
+        name: ice_area_fraction@GeoVaLs
+      maxvalue: 0.01
+  - filter: Gaussian_Thinning
+    horizontal_mesh: 30.0 # km
+  # Get rid of mixed surface types
+  - filter: BlackList
+    filter variables:
+    - name: brightness_temperature
+      channels: *channels_amsua_aqua #1-15
+    where:
+    - variable:
+        name: land_area_fraction@GeoVaLs
+      minvalue: 0.01
+    - variable:
+        name: water_area_fraction@GeoVaLs
+      minvalue: 0.01
+# - filter: BlackList
+#   filter variables:
+#   - name: brightness_temperature
+#     channels: *channels_amsua_aqua #1-15
+#   where:
+#   - variable:
+#       name:  land_area_fraction@GeoVaLs
+#     maxvalue: 0.05
+#   # check is specific to AMSU-A requires ch1, ch2 and ch15
+#   # flags land along with sea-ice
+#   - variable:
+#       name: Scattering@ObsFunction
+#     minvalue: 10.0
+# - filter: Difference Check
+#   reference: brightness_temperature_15@ObsValue
+#   value: brightness_temperature_1@ObsValue
+#   maxvalue: 3
+

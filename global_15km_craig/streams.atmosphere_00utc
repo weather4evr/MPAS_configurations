@@ -1,0 +1,69 @@
+<streams>
+<immutable_stream name="static"
+                  type="input"
+                  filename_template="./static.nc"
+		  io_type="pnetcdf,cdf5"
+                  input_interval="initial_only" />
+
+<immutable_stream name="input"
+                  type="input"
+                  filename_template="./init.nc"
+		  io_type="pnetcdf,cdf5"
+                  input_interval="initial_only"/>
+
+<immutable_stream name="restart"
+        type="input;output"
+        filename_template="restart.$Y-$M-$D_$h.$m.$s.nc"
+        input_interval="initial_only"
+        io_type="pnetcdf,cdf5"
+        clobber_mode="replace_files"
+	precision="single"
+        output_interval="99999:00:00" />
+
+<immutable_stream name="da_state"
+        type="output"
+        filename_template="mpasout.$Y-$M-$D_$h.$m.$s.nc"
+        io_type="pnetcdf,cdf5"
+        clobber_mode="replace_files"
+	precision="single"
+        output_interval="6:00:00" />
+
+<stream name="output"
+        type="output"
+        filename_template="./output.$Y-$M-$D_$h.$m.$s.nc"
+        clobber_mode="replace_files"
+	precision="single"
+        io_type="netcdf4"
+        output_interval="none">
+
+    <file name="/glade/u/home/schwartz/MPAS_scripts/stream_list.atmosphere.output"/>
+</stream>
+
+<stream name="diagnostics"
+        type="output"
+        filename_template="diag.$Y-$M-$D_$h.$m.$s.nc"
+        clobber_mode="replace_files"
+	precision="single"
+	io_type="pnetcdf,cdf5"
+        output_interval="6:00:00">
+
+    <file name="/glade/u/home/schwartz/MPAS_scripts/stream_list.atmosphere.diagnostics"/>
+</stream>
+
+<stream name="surface"
+        type="input"
+        io_type="pnetcdf,cdf5"
+        filename_interval="none"
+        filename_template="./sfc_update.nc"
+        input_interval="99_00:00:00">
+    <file name="/glade/u/home/schwartz/MPAS_scripts/stream_list.atmosphere.surface"/>
+</stream>
+
+<immutable_stream name="lbc_in"
+                 type="input"
+                 io_type="netcdf4"
+                 filename_template="lbc.$Y$M$D$h.nc"
+                 filename_interval="input_interval"
+                 input_interval="none" />
+
+</streams>
